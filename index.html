@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTI — Escala</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a56a0;--blue-l:#e8f1fb;--blue-m:#4d8fd1;--blue-d:#0d3a6e;
+  --w:#fff;--off:#f5f7fa;--b:#dce6f0;--tx:#1a2533;--mu:#6b7f96;
+  --gr:#1a9e6a;--gr-l:#e6f7f1;--am:#c47a1a;--am-l:#fdf3e3;
+  --rd:#c0392b;--rd-l:#fdecea;
+  --r:8px;--rl:14px;--tr:0.16s ease;--sh:0 2px 16px rgba(26,86,160,0.09);
+  --nav:54px;--drawer:300px;
+}
+body{font-family:'Inter',sans-serif;background:var(--off);color:var(--tx);font-size:13px;line-height:1.5;overflow:hidden;height:100vh}
+
+/* ── LOGIN ── */
+#ls{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#f0f5fc 0%,#e8f1fb 100%)}
+.lw{width:360px}
+.lb{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.lbx{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent}
+.lbx img{width:100%;height:100%;object-fit:contain}
+.lbt{font-size:17px;font-weight:600}.lbs{font-size:12px;color:var(--mu)}
+.lc{background:var(--w);border:1px solid var(--b);border-radius:var(--rl);padding:28px;box-shadow:var(--sh)}
+.lc h2{font-size:15px;font-weight:600;margin-bottom:4px}
+.lc p{font-size:12px;color:var(--mu);margin-bottom:22px}
+.fl{margin-bottom:14px}
+.fl label{display:block;font-size:11px;font-weight:500;color:var(--mu);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.fl input{width:100%;padding:9px 11px;border:1px solid var(--b);border-radius:var(--r);font-family:inherit;font-size:13px;color:var(--tx);outline:none;transition:var(--tr)}
+.fl input:focus{border-color:var(--blue-m);box-shadow:0 0 0 3px rgba(26,86,160,.09)}
+.lerr{font-size:11px;color:var(--rd);margin:-6px 0 10px;display:none}
+.lerr.show{display:block}
+.blg{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:var(--tr)}
+.blg:hover{background:var(--blue-d)}
+
+/* ── APP SHELL ── */
+#app{display:none;height:100vh;flex-direction:column}
+/* NAV */
+.nav{height:var(--nav);background:var(--w);border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;z-index:50}
+.nav-ham{width:32px;height:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;border-radius:6px;border:1px solid var(--b);background:var(--w);flex-shrink:0;transition:var(--tr)}
+.nav-ham:hover{background:var(--off)}
+.nav-ham span{display:block;width:14px;height:1.5px;background:var(--tx);border-radius:1px;transition:var(--tr)}
+.nav-logo{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;flex-shrink:0}
+.nav-logo img{width:100%;height:100%;object-fit:contain}
+.nav-title{font-size:13px;font-weight:600;flex:1}
+.nav-tabs{display:flex;gap:2px}
+.nt{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--mu);transition:var(--tr);font-family:inherit}
+.nt:hover{background:var(--off);color:var(--tx)}
+.nt.active{background:var(--blue);color:#fff}
+.nav-user{display:flex;align-items:center;gap:8px;margin-left:8px}
+.nav-av{width:28px;height:28px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--blue)}
+.nav-nm{font-size:12px;font-weight:500}
+.btn-out{font-size:11px;color:var(--mu);cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--b);background:var(--w);font-family:inherit;transition:var(--tr)}
+.btn-out:hover{border-color:var(--rd);color:var(--rd)}
+
+/* ── BODY LAYOUT (drawer + content) ── */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* ── DRAWER ── */
+.drawer{width:var(--drawer);background:var(--w);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--tr),opacity var(--tr)}
+.drawer.closed{width:0;opacity:0;pointer-events:none}
+.drawer-inner{width:var(--drawer);display:flex;flex-direction:column;height:100%;overflow:hidden}
+.drawer-head{padding:16px 18px 12px;border-bottom:1px solid var(--b);flex-shrink:0}
+.drawer-head-title{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
+.step-list{padding:10px 10px;flex-shrink:0;border-bottom:1px solid var(--b)}
+.step-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:var(--tr);position:relative}
+.step-item:hover{background:var(--off)}
+.step-item.active{background:var(--blue-l)}
+.step-item.done .si-num{background:var(--gr);color:#fff}
+.step-item.active .si-num{background:var(--blue);color:#fff}
+.step-item.disabled{opacity:.45;pointer-events:none}
+.si-num{width:22px;height:22px;border-radius:50%;background:var(--off);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--mu);flex-shrink:0;transition:var(--tr)}
+.si-label{font-size:12px;font-weight:500}
+.si-sub{font-size:11px;color:var(--mu)}
+.si-check{margin-left:auto;color:var(--gr);font-size:12px}
+
+/* FUNIL */
+.funnel-wrap{padding:12px 14px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.funnel-head{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;padding:4px 4px 8px;border-bottom:1px solid var(--b);margin-bottom:2px}
+.filt-group{margin-bottom:4px}
+.filt-label{font-size:11px;font-weight:500;color:var(--mu);margin-bottom:6px;display:block}
+.filt-input{width:100%;padding:7px 10px;border:1px solid var(--b);border-radius:var(--r);font-family:inherit;font-size:12px;outline:none;transition:var(--tr)}
+.filt-input:focus{border-color:var(--blue-m)}
+.filt-chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--b);background:var(--w);color:var(--mu);transition:var(--tr);font-family:inherit}
+.chip:hover{border-color:var(--blue-m);color:var(--blue)}
+.chip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chip-sm{padding:2px 7px;font-size:10px}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:24px}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.screen{display:none}.screen.active{display:block}
+
+/* ── COMPONENTS ── */
+.card{background:var(--w);border:1px solid var(--b);border-radius:var(--rl);padding:20px;box-shadow:var(--sh);margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.card-sub{font-size:12px;color:var(--mu);margin-bottom:16px}
+.tbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--b);background:var(--w);color:var(--tx);transition:var(--tr)}
+.btn:hover{background:var(--off);border-color:var(--blue-m)}
+.bp{background:var(--blue);color:#fff;border-color:var(--blue)}.bp:hover{background:var(--blue-d);border-color:var(--blue-d)}
+.bs{background:var(--gr);color:#fff;border-color:var(--gr)}.bs:hover{background:#14845a}
+.bd{color:var(--rd);border-color:#f5c6c6}.bd:hover{background:var(--rd-l);border-color:var(--rd)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.sc{background:var(--w);border:1px solid var(--b);border-radius:var(--r);padding:12px 14px}
+.sl{font-size:11px;color:var(--mu);font-weight:500;margin-bottom:3px}
+.sv{font-size:20px;font-weight:600}.sv.bl{color:var(--blue)}.sv.gr{color:var(--gr)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;border-bottom:1px solid var(--b)}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--b);font-size:12px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--off)}
+.xbw{display:flex;align-items:center;gap:7px}
+.xb{height:3px;border-radius:2px;background:var(--b);flex:1;max-width:70px}
+.xf{height:100%;border-radius:2px;background:var(--blue);transition:width .4s}
+.xf.mx{background:var(--gr)}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.be{background:var(--gr-l);color:var(--gr)}.bg{background:var(--blue-l);color:var(--blue)}
+.bad{background:var(--am-l);color:var(--am)}.bu{background:var(--off);color:var(--mu)}
+
+/* CHAMADA GRID */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:8px;max-height:calc(100vh - 260px);overflow-y:auto;padding-right:4px}
+.cc{background:var(--w);border:1px solid var(--b);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:var(--tr)}
+.cc:hover{border-color:var(--blue-m);background:var(--blue-l)}
+.cc.sel{border-color:var(--blue);background:var(--blue-l)}
+.cav{width:30px;height:30px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--blue);flex-shrink:0}
+.cch{margin-left:auto;color:var(--blue);font-size:13px;opacity:0}
+.cc.sel .cch{opacity:1}
+
+/* ESCALA GRID */
+.eg{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:12px}
+.esc{background:var(--w);border:1px solid var(--b);border-radius:var(--rl);padding:16px;transition:border-color .2s}
+.esc.drop-over{border-color:var(--blue-m);background:var(--blue-l)}
+.esc-name{font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between}
+.rr{display:flex;align-items:flex-start;gap:8px;padding:7px 0}
+.rr+.rr{border-top:1px solid var(--b)}
+.rl{font-size:10px;font-weight:500;color:var(--mu);width:62px;flex-shrink:0;padding-top:2px}
+.rp{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+.ra{width:24px;height:24px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--blue);flex-shrink:0}
+.ra.g{background:#fef3e2;color:#b45309}
+.rn{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rx{font-size:10px;color:var(--mu)}
+.np{font-size:11px;color:var(--mu);font-style:italic}
+.cp-list{display:flex;flex-direction:column;gap:4px;flex:1}
+
+/* DRAGGABLE CP ITEM */
+.cp-item{display:flex;align-items:center;gap:7px;padding:3px 4px;border-radius:5px;cursor:grab;transition:background .15s;position:relative}
+.cp-item:hover{background:var(--off)}
+.cp-item.dragging{opacity:.4;cursor:grabbing}
+.cp-item .drag-handle{font-size:10px;color:var(--b);flex-shrink:0}
+.cp-item .cp-move-btn{margin-left:auto;font-size:9px;padding:1px 6px;border-radius:4px;border:1px solid var(--b);background:var(--w);color:var(--mu);cursor:pointer;font-family:inherit;transition:var(--tr);white-space:nowrap}
+.cp-item .cp-move-btn:hover{border-color:var(--blue-m);color:var(--blue)}
+
+/* OVERFLOW ALERT */
+.overflow-alert{background:var(--am-l);border:1px solid var(--am);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px}
+.overflow-alert .oa-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.overflow-alert .oa-body{flex:1}
+.overflow-alert .oa-title{font-size:12px;font-weight:600;color:var(--am);margin-bottom:3px}
+.overflow-alert .oa-desc{font-size:11px;color:#7a5010;line-height:1.5}
+
+/* UNALLOCATED PANEL */
+.unalloc-panel{background:var(--rd-l);border:1px solid #f5c6c6;border-radius:var(--r);padding:12px 16px;margin-bottom:16px}
+.unalloc-panel .up-title{font-size:12px;font-weight:600;color:var(--rd);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.unalloc-panel .up-list{display:flex;flex-wrap:wrap;gap:6px}
+.unalloc-pill{display:inline-flex;align-items:center;gap:5px;background:var(--w);border:1px solid #f5c6c6;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:var(--rd)}
+
+/* MOVE MODAL */
+.move-select{width:100%;padding:8px 11px;border:1px solid var(--b);border-radius:var(--r);font-family:inherit;font-size:12px;margin-bottom:10px;outline:none}
+.move-select:focus{border-color:var(--blue-m)}
+
+/* LOG */
+.log-list{display:flex;flex-direction:column;gap:7px;max-height:400px;overflow-y:auto}
+.li{background:var(--off);border:1px solid var(--b);border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:10px}
+.li.ev{border-color:var(--gr);background:var(--gr-l)}
+.ld{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.ld.ev{background:var(--gr)}
+.lt{font-size:11px;flex:1}
+.lx{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);white-space:nowrap}
+.lx.ev{color:var(--gr)}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(10,20,40,.35);z-index:200;align-items:center;justify-content:center}
+.mbg.open{display:flex}
+.md{background:var(--w);border-radius:var(--rl);padding:24px;width:400px;max-width:92vw;box-shadow:0 8px 40px rgba(10,20,40,.16)}
+.md h3{font-size:14px;font-weight:600;margin-bottom:14px}
+.md input,.md select{width:100%;padding:8px 11px;border:1px solid var(--b);border-radius:var(--r);font-family:inherit;font-size:12px;margin-bottom:10px;outline:none;transition:var(--tr)}
+.md input:focus,.md select:focus{border-color:var(--blue-m)}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--tx);color:#fff;padding:9px 16px;border-radius:var(--r);font-size:12px;opacity:0;transform:translateY(6px);transition:all .22s;z-index:300;pointer-events:none;max-width:280px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.tg{background:var(--gr)}.toast.tr{background:var(--rd)}
+
+/* TAGS FILTER */
+.tag-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.tag{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:var(--blue-l);color:var(--blue);cursor:pointer;border:1px solid transparent;transition:var(--tr);font-family:inherit}
+.tag.active{background:var(--blue);color:#fff}
+
+/* DOCS */
+.ds{margin-bottom:28px}
+.ds h3{font-size:14px;font-weight:600;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid var(--b)}
+.ds p{font-size:12px;color:var(--mu);line-height:1.7;margin-bottom:8px}
+.dg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px}
+.dc{background:var(--off);border:1px solid var(--b);border-radius:var(--r);padding:14px}
+.dc-t{font-size:12px;font-weight:600;margin-bottom:5px}
+.dc-b{font-size:11px;color:var(--mu);line-height:1.6}
+.dstep{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+.dsn{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.dsb h4{font-size:12px;font-weight:600;margin-bottom:2px}
+.dsb p{font-size:11px;color:var(--mu);line-height:1.6}
+.pill-d{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;margin:2px 2px 0 0}
+
+/* SCROLL */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+.tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 310px)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls">
+  <div class="lw">
+    <div class="lb">
+      <div class="lbx"><img src="data:image/png;base64,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" alt="CTI Logo"></div>
+      <div><div class="lbt">Sistema de Escala</div><div class="lbs">Operações & Capacitação</div></div>
+    </div>
+    <div class="lc">
+      <h2>Acesso restrito</h2>
+      <p>Entre com seu e-mail profissional e senha.</p>
+      <div class="fl"><label>E-mail</label><input id="le" type="email" placeholder="nome@cti.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="fl"><label>Senha</label><input id="lp" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="lerr" id="lerr">E-mail ou senha incorretos.</div>
+      <button class="blg" onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-ham" id="ham" onclick="toggleDrawer()" title="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-logo"><img src="data:image/png;base64,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" alt="CTI Logo"></div>
+    <div class="nav-title">Sistema de Escala</div>
+    <div class="nav-tabs">
+      <button class="nt active" onclick="switchTab('op')" id="nt-op">Operações</button>
+      <button class="nt" onclick="switchTab('us')" id="nt-us" style="display:none">Usuários</button>
+      <button class="nt" onclick="switchTab('doc')" id="nt-doc">Como funciona</button>
+    </div>
+    <div class="nav-user">
+      <div class="nav-av" id="nav-av">?</div>
+      <span class="nav-nm" id="nav-nm"></span>
+      <button class="btn-out" onclick="doLogout()">Sair</button>
+    </div>
+  </nav>
+
+  <!-- BODY -->
+  <div class="app-body">
+
+    <!-- DRAWER -->
+    <div class="drawer" id="drawer">
+      <div class="drawer-inner">
+        <div id="drawer-steps">
+          <div class="drawer-head"><div class="drawer-head-title">Etapas do dia</div></div>
+          <div class="step-list">
+            <div class="step-item active" id="si-0" onclick="goTo(0)">
+              <div class="si-num" id="sn-0">1</div>
+              <div><div class="si-label">Gestão</div><div class="si-sub">Equipe técnica</div></div>
+            </div>
+            <div class="step-item disabled" id="si-1" onclick="goTo(1)">
+              <div class="si-num" id="sn-1">2</div>
+              <div><div class="si-label">Chamada</div><div class="si-sub">Quem está presente</div></div>
+            </div>
+            <div class="step-item disabled" id="si-2" onclick="goTo(2)">
+              <div class="si-num" id="sn-2">3</div>
+              <div><div class="si-label">Grid</div><div class="si-sub">Escala do dia</div></div>
+            </div>
+            <div class="step-item disabled" id="si-3" onclick="goTo(3)">
+              <div class="si-num" id="sn-3">4</div>
+              <div><div class="si-label">Fechamento</div><div class="si-sub">Creditar XP</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="funnel-wrap" id="drawer-funnel">
+          <div class="funnel-head">Filtros</div>
+          <div id="funnel-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- TAB: OPERAÇÕES -->
+      <div class="tab-pane active" id="tab-op">
+
+        <!-- S0: GESTÃO -->
+        <div class="screen active" id="sc-0">
+          <div class="stats-row">
+            <div class="sc"><div class="sl">Total de técnicos</div><div class="sv bl" id="st-tot">0</div></div>
+            <div class="sc"><div class="sl">Especialistas</div><div class="sv gr" id="st-esp">0</div></div>
+            <div class="sc"><div class="sl">Serviços mapeados</div><div class="sv" id="st-serv">18</div></div>
+            <div class="sc"><div class="sl">Threshold XP</div><div class="sv">200</div></div>
+          </div>
+          <div class="card" style="margin-bottom:0">
+            <div class="tbar">
+              <div><div class="card-title">Equipe técnica</div><div class="card-sub">Proficiência e especialidades por colaborador</div></div>
+              <div style="display:flex;gap:7px">
+                <button class="btn btn-sm" id="btn-add-colab" onclick="openMd('add')">+ Técnico</button>
+                <button class="btn btn-sm bp" onclick="goTo(1)">Iniciar chamada →</button>
+              </div>
+            </div>
+            <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Técnico</th><th>Especialidades</th><th>XP total</th><th>Status</th><th id="th-act"></th></tr></thead><tbody id="tb"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- S1: CHAMADA -->
+        <div class="screen" id="sc-1">
+          <div class="card" style="margin-bottom:0">
+            <div class="tbar">
+              <div><div class="card-title">Chamada matinal</div><div class="card-sub">Selecione quem está presente hoje</div></div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span id="pc" style="font-size:12px;color:var(--mu)">0 selecionados</span>
+                <button class="btn btn-sm" onclick="toggleAll()">Todos</button>
+                <button class="btn btn-sm bp" id="btn-gerar" onclick="gerarEscala()" disabled>Gerar escala →</button>
+              </div>
+            </div>
+            <div class="cg" id="cg"></div>
+          </div>
+        </div>
+
+        <!-- S2: GRID -->
+        <div class="screen" id="sc-2">
+          <div class="tbar">
+            <div><div class="card-title">Grid operacional</div><div style="font-size:12px;color:var(--mu)">Piloto = especialista de maior XP · Co-piloto = técnico em desenvolvimento (máx. 5) · <strong>Arraste</strong> co-pilotos entre setores ou use o botão ↔</div></div>
+            <div style="display:flex;gap:7px">
+              <button class="btn btn-sm" onclick="goTo(1)">← Chamada</button>
+              <button class="btn btn-sm bs" onclick="goTo(3)">Fechar expediente →</button>
+            </div>
+          </div>
+          <div id="overflow-zone"></div>
+          <div class="tag-row" id="ftags"></div>
+          <div class="eg" id="eg"></div>
+        </div>
+
+        <!-- S3: FECHAMENTO -->
+        <div class="screen" id="sc-3">
+          <div class="card" style="margin-bottom:0">
+            <div class="tbar">
+              <div><div class="card-title">Fechamento do expediente</div><div class="card-sub">Prévia dos créditos de XP — confirme para aplicar</div></div>
+              <button class="btn btn-sm bp" onclick="fechar()">Confirmar e creditar XP</button>
+            </div>
+            <div class="log-list" id="lp"></div>
+          </div>
+        </div>
+
+      </div><!-- /tab-op -->
+
+      <!-- TAB: USUÁRIOS -->
+      <div class="tab-pane" id="tab-us">
+        <div class="card" style="margin-bottom:0">
+          <div class="tbar">
+            <div><div class="card-title">Gerenciamento de acesso</div><div class="card-sub">Somente admins podem criar e gerenciar usuários</div></div>
+            <button class="btn btn-sm bp" onclick="openMd('user')">+ Novo usuário</button>
+          </div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Status</th><th></th></tr></thead><tbody id="utb"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- TAB: DOCS -->
+      <div class="tab-pane" id="tab-doc">
+        <div class="card" style="margin-bottom:0">
+          <div class="ds">
+            <h3>Visão geral</h3>
+            <p>O Sistema de Escala da CTI organiza automaticamente a equipe técnica diária com base em proficiência acumulada (XP). Cada técnico ganha XP por serviço atendido. Ao atingir <strong>200 XP</strong> em um serviço, vira <strong>especialista</strong> nessa área e passa a ser elegível como Piloto.</p>
+          </div>
+          <div class="ds">
+            <h3>As 4 etapas</h3>
+            <div class="dstep"><div class="dsn">1</div><div class="dsb"><h4>Gestão</h4><p>Visualize e gerencie a equipe. Admins podem cadastrar técnicos e resetar XP por serviço.</p></div></div>
+            <div class="dstep"><div class="dsn">2</div><div class="dsb"><h4>Chamada matinal</h4><p>Marque quem está presente no dia. Apenas os marcados participam da alocação.</p></div></div>
+            <div class="dstep"><div class="dsn">3</div><div class="dsb"><h4>Grid operacional</h4><p>Escala gerada automaticamente. Cada serviço recebe um <strong>Piloto</strong> (especialista) e até <strong>5 Co-pilotos</strong>. Você pode mover co-pilotos entre setores manualmente arrastando ou usando o botão ↔. Técnicos sem vaga ficam marcados como <em>Superlotação</em>.</p></div></div>
+            <div class="dstep"><div class="dsn">4</div><div class="dsb"><h4>Fechamento</h4><p>XP creditado: <span class="pill-d" style="background:var(--blue-l);color:var(--blue)">+10 XP Piloto</span><span class="pill-d" style="background:var(--am-l);color:var(--am)">+3 XP Co-piloto</span>. Ao atingir 200 XP, o técnico é promovido automaticamente.</p></div></div>
+          </div>
+          <div class="ds">
+            <h3>Método de divisão</h3>
+            <p>A alocação segue <strong>escassez prioritária</strong>: setores com menos especialistas disponíveis no dia são alocados primeiro. O limite de <strong>5 co-pilotos por setor</strong> é estrito — técnicos excedentes são listados como superlotação e devem ser movidos manualmente.</p>
+            <div class="dg">
+              <div class="dc"><div class="dc-t">Piloto</div><div class="dc-b">Especialista (≥ 200 XP no serviço). Entre candidatos, escolhe-se o de maior XP. Cada técnico é Piloto em apenas um setor por dia.</div></div>
+              <div class="dc"><div class="dc-t">Co-piloto (máx. 5)</div><div class="dc-b">Qualquer técnico presente não alocado como Piloto. Limite rígido de 5 por setor. Excedentes ficam no painel de superlotação para realocação manual.</div></div>
+              <div class="dc"><div class="dc-t">Superlotação</div><div class="dc-b">Técnicos sem vaga disponível. O sistema alerta e permite mover manualmente via arrastar-soltar ou botão ↔.</div></div>
+              <div class="dc"><div class="dc-t">Sessão coletiva</div><div class="dc-b">Setor sem especialista disponível entra em modo coletivo — atendimento compartilhado pelo grupo geral.</div></div>
+            </div>
+          </div>
+          <div class="ds" style="margin-bottom:0">
+            <h3>Perfis de acesso</h3>
+            <div class="dg">
+              <div class="dc"><div class="dc-t"><span class="badge bad" style="margin-right:5px">Admin</span>Administrador</div><div class="dc-b">Acesso total: operações, reset de XP, criação de usuários e gerenciamento de acessos.</div></div>
+              <div class="dc"><div class="dc-t"><span class="badge bu" style="margin-right:5px">Operador</span>Operador</div><div class="dc-b">Chamada, grid e fechamento. Visualização da equipe. Sem permissão para criar usuários ou resetar XP.</div></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-doc -->
+
+    </div><!-- /content -->
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+<div class="mbg" id="md-add"><div class="md">
+  <h3>Novo técnico</h3>
+  <input id="mn" placeholder="Nome completo" onkeydown="if(event.key==='Enter')addColab()">
+  <div class="ma"><button class="btn" onclick="closeMd('add')">Cancelar</button><button class="btn bp" onclick="addColab()">Cadastrar</button></div>
+</div></div>
+
+<div class="mbg" id="md-reset"><div class="md">
+  <h3>Resetar XP</h3>
+  <p style="font-size:12px;color:var(--mu);margin-bottom:10px" id="rs-sub"></p>
+  <select id="rs-serv"></select>
+  <div class="ma"><button class="btn" onclick="closeMd('reset')">Cancelar</button><button class="btn bd" onclick="confirmReset()">Resetar</button></div>
+</div></div>
+
+<div class="mbg" id="md-user"><div class="md">
+  <h3>Novo usuário</h3>
+  <input id="un" placeholder="Nome completo">
+  <input id="ue" type="email" placeholder="email@cti.com">
+  <input id="up" type="password" placeholder="Senha">
+  <select id="ur"><option value="user">Operador (acesso padrão)</option><option value="admin">Administrador (acesso total)</option></select>
+  <div class="ma"><button class="btn" onclick="closeMd('user')">Cancelar</button><button class="btn bp" onclick="addUser()">Criar acesso</button></div>
+</div></div>
+
+<!-- MOVE MODAL -->
+<div class="mbg" id="md-move"><div class="md">
+  <h3 id="move-title">Mover colaborador</h3>
+  <p style="font-size:12px;color:var(--mu);margin-bottom:12px" id="move-sub"></p>
+  <select class="move-select" id="move-dest"></select>
+  <div class="ma">
+    <button class="btn" onclick="closeMd('move')">Cancelar</button>
+    <button class="btn bp" onclick="confirmMove()">Mover</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DADOS ───────────────────────────────────────────────
+const SERVICOS=["Acesso Dedicado","Acesso Link Comercio","Analise Vulnerabilidade","Antispam","Antivirus","Backup","Cloud - Serv. Virtual","Co-Location","E-mail","FTP","Fortinet","Hospedagem","SMTP","SonicWall","Suporte a servidores","Trust-Mail","WiFi+","ZABBIX"];
+let COLABS=["3 - NJ2","3 - Netclick","3 - RP1","3 - RP2","3 - RR","Allan","André","Arnizal","Arthur","Breno Gabriel","Bruno","Camila","Carlos Alberto","Cleverton","Daniel","Danilo","Davi","Eduardo","Elaine","Emerson","Endrew","Ermerson","Felipe","Fernanda","Flavio","Gabriel","Guilherme Coelho","Gustavo","Gustavo Avelar","Hillara Rafaela","Isabella","Janaina","Jeferson","Jeison","Jhennifer","José","João","João Paulo","João Pedro","João Victor","Jéssica","Júlio","Karina","Kaue","Laryssa","Lucas","Marcia","Marcio Takeshi","Marcos","Matheus","Matheus Vieira","Mauro","Miriam","Nicolas","Pedro","Pedro Gregory","Rafael Gomes","Rayane","Reinaldo","Renan","Renato","Ricardo Cauê","Robson","Rodolfo","Stephanie","Supernova","Thiago","Tiago","Victor","Vinicius","Vitor","Wenderson Do Nascimento","Wesley","Wilhard","Yuri","imcnet"];
+const XP_SEED={"3 - NJ2":{"Fortinet":26,"SonicWall":1},"3 - Netclick":{"Acesso Dedicado":10,"Antivirus":6,"Backup":13,"Cloud - Serv. Virtual":5,"Fortinet":14,"SMTP":3,"Suporte a servidores":1,"WiFi+":1},"3 - RP1":{"Acesso Dedicado":2,"Antivirus":8,"SonicWall":6},"3 - RP2":{"WiFi+":1},"3 - RR":{"Hospedagem":1},"Allan":{"Acesso Dedicado":999,"Acesso Link Comercio":27,"E-mail":7,"Fortinet":2,"Hospedagem":1,"SonicWall":2},"André":{"Acesso Dedicado":8,"Acesso Link Comercio":1},"Arnizal":{"Acesso Dedicado":24,"Cloud - Serv. Virtual":1,"E-mail":25,"Fortinet":4,"Hospedagem":6,"Suporte a servidores":1,"WiFi+":1},"Arthur":{"Acesso Dedicado":11},"Breno Gabriel":{"Acesso Dedicado":5},"Bruno":{"Acesso Dedicado":35,"Antispam":1,"Cloud - Serv. Virtual":1,"Co-Location":7,"Fortinet":3,"Hospedagem":1},"Camila":{"Acesso Dedicado":4,"E-mail":1},"Carlos Alberto":{"Acesso Dedicado":4,"Fortinet":2},"Cleverton":{"Acesso Dedicado":9,"Analise Vulnerabilidade":1,"Antivirus":38,"Cloud - Serv. Virtual":7,"E-mail":2,"Fortinet":782,"Hospedagem":3,"SMTP":2,"SonicWall":42,"Suporte a servidores":2,"WiFi+":15},"Daniel":{"Acesso Dedicado":3,"Cloud - Serv. Virtual":2,"Fortinet":3,"SonicWall":1},"Danilo":{"Acesso Dedicado":139,"Acesso Link Comercio":1,"Antispam":34,"Antivirus":18,"Backup":275,"Cloud - Serv. Virtual":78,"E-mail":645,"FTP":1,"Fortinet":514,"Hospedagem":240,"SMTP":21,"SonicWall":18,"Suporte a servidores":6,"Trust-Mail":52,"WiFi+":4},"Davi":{"Acesso Dedicado":122,"Antispam":9,"Antivirus":60,"Backup":50,"Cloud - Serv. Virtual":29,"E-mail":220,"Fortinet":135,"Hospedagem":82,"SMTP":2,"SonicWall":8,"Suporte a servidores":1,"Trust-Mail":2,"WiFi+":3,"ZABBIX":1},"Eduardo":{"Acesso Dedicado":25,"E-mail":1,"WiFi+":2},"Elaine":{"Acesso Dedicado":1,"Acesso Link Comercio":1},"Emerson":{"Acesso Dedicado":38,"Acesso Link Comercio":2,"WiFi+":1},"Endrew":{"Acesso Dedicado":1363,"Acesso Link Comercio":33,"E-mail":2,"Fortinet":8,"SonicWall":1},"Ermerson":{"Acesso Dedicado":57,"Acesso Link Comercio":2,"E-mail":1},"Felipe":{"Acesso Dedicado":26,"Antispam":1,"Antivirus":36,"Backup":8,"Cloud - Serv. Virtual":5,"E-mail":55,"Fortinet":666,"Hospedagem":7,"SMTP":1,"SonicWall":38,"Suporte a servidores":2,"Trust-Mail":1,"WiFi+":24,"ZABBIX":1},"Fernanda":{"Acesso Dedicado":12,"Acesso Link Comercio":1,"Antivirus":1,"E-mail":3,"Fortinet":6,"Hospedagem":5,"WiFi+":2},"Flavio":{"Acesso Dedicado":1,"Cloud - Serv. Virtual":1,"Fortinet":1,"Hospedagem":1},"Gabriel":{"Acesso Dedicado":6,"WiFi+":1},"Guilherme Coelho":{"Acesso Dedicado":130,"Acesso Link Comercio":2},"Gustavo":{"Acesso Dedicado":736,"Acesso Link Comercio":19,"Co-Location":1,"Fortinet":3,"Hospedagem":2,"WiFi+":2},"Gustavo Avelar":{"Acesso Dedicado":99,"Acesso Link Comercio":2},"Hillara Rafaela":{"Acesso Dedicado":115,"Acesso Link Comercio":4},"Isabella":{"Acesso Dedicado":1,"Fortinet":4,"SonicWall":1,"WiFi+":2},"Janaina":{"Acesso Dedicado":33,"Analise Vulnerabilidade":3,"Antispam":1,"Antivirus":2,"Backup":6,"Cloud - Serv. Virtual":8,"E-mail":20,"Fortinet":45,"Hospedagem":8,"SMTP":1,"SonicWall":2,"WiFi+":3},"Jeferson":{"Acesso Dedicado":17,"Acesso Link Comercio":1,"Backup":8,"E-mail":5,"Hospedagem":1},"Jeison":{"Acesso Dedicado":82},"Jhennifer":{"Acesso Dedicado":237,"Acesso Link Comercio":1,"Antispam":1,"Antivirus":9,"Backup":79,"Cloud - Serv. Virtual":6,"E-mail":29,"Fortinet":261,"Hospedagem":14,"SMTP":1,"SonicWall":21,"Suporte a servidores":1,"WiFi+":4},"José":{"Acesso Dedicado":102,"Antispam":1,"Antivirus":1,"Backup":3,"Cloud - Serv. Virtual":4,"E-mail":5,"Fortinet":196,"Hospedagem":12,"SonicWall":14,"Suporte a servidores":1,"WiFi+":4},"João":{"Backup":1},"João Paulo":{"Acesso Dedicado":28,"Antivirus":37,"Backup":4,"Cloud - Serv. Virtual":2,"E-mail":19,"Fortinet":1480,"Hospedagem":15,"SMTP":1,"SonicWall":90,"Suporte a servidores":2,"WiFi+":64,"ZABBIX":1},"João Pedro":{"Acesso Dedicado":9,"Fortinet":2},"João Victor":{"Acesso Dedicado":172,"Acesso Link Comercio":3,"WiFi+":1},"Jéssica":{"E-mail":1},"Júlio":{"Acesso Dedicado":50,"Acesso Link Comercio":8,"Antivirus":1,"Backup":11,"E-mail":8,"Fortinet":11,"SonicWall":1,"WiFi+":5},"Karina":{"Acesso Dedicado":17,"Antivirus":3,"Cloud - Serv. Virtual":1,"E-mail":3,"Fortinet":4,"SonicWall":4,"Trust-Mail":1,"WiFi+":1},"Kaue":{"Fortinet":1,"WiFi+":2},"Laryssa":{"E-mail":1},"Lucas":{"Acesso Dedicado":225,"Acesso Link Comercio":3,"Analise Vulnerabilidade":2,"Antispam":2,"Antivirus":250,"Backup":5,"Cloud - Serv. Virtual":18,"E-mail":33,"Fortinet":2868,"Hospedagem":17,"SonicWall":159,"Suporte a servidores":5,"WiFi+":115,"ZABBIX":1},"Marcia":{"Acesso Dedicado":2,"Fortinet":1,"SonicWall":3},"Marcio Takeshi":{"Acesso Dedicado":22,"Antivirus":2,"Backup":3,"E-mail":3,"Fortinet":8,"Hospedagem":3,"WiFi+":2},"Marcos":{"Acesso Dedicado":596,"Acesso Link Comercio":18,"Antivirus":1,"Cloud - Serv. Virtual":1,"E-mail":2,"Fortinet":6,"Hospedagem":1,"WiFi+":1},"Matheus":{"Acesso Dedicado":58,"Antivirus":51,"Backup":26,"Cloud - Serv. Virtual":13,"E-mail":36,"Fortinet":130,"Hospedagem":41,"SMTP":1,"SonicWall":14,"Trust-Mail":4,"WiFi+":7},"Matheus Vieira":{"Antivirus":1,"Backup":3,"E-mail":5,"Fortinet":24,"SonicWall":2,"Suporte a servidores":1},"Mauro":{"Acesso Dedicado":4,"Antivirus":5},"Miriam":{"Acesso Dedicado":337,"Acesso Link Comercio":1,"Antivirus":1,"Backup":78,"Cloud - Serv. Virtual":4,"E-mail":4,"Fortinet":101,"Hospedagem":10,"SMTP":1,"SonicWall":7,"WiFi+":1},"Nicolas":{"Acesso Dedicado":10},"Pedro":{"Acesso Dedicado":3,"Antivirus":12,"Fortinet":211,"SonicWall":9,"WiFi+":1},"Pedro Gregory":{"Acesso Dedicado":9,"Acesso Link Comercio":1},"Rafael Gomes":{"Acesso Dedicado":573,"Acesso Link Comercio":13,"Hospedagem":1},"Rayane":{"Acesso Dedicado":2,"Hospedagem":1},"Reinaldo":{"Acesso Dedicado":8,"Antivirus":1,"Backup":1,"E-mail":2,"Fortinet":9,"Hospedagem":1,"WiFi+":2},"Renan":{"Acesso Dedicado":6,"Acesso Link Comercio":1},"Renato":{"Acesso Dedicado":64,"Antivirus":2,"Backup":37,"Cloud - Serv. Virtual":13,"Co-Location":8,"E-mail":9,"Fortinet":1,"Hospedagem":11,"Suporte a servidores":4},"Ricardo Cauê":{"Acesso Dedicado":72,"Co-Location":10,"Suporte a servidores":1},"Robson":{"Acesso Dedicado":3},"Rodolfo":{"Acesso Dedicado":1104,"Acesso Link Comercio":35,"Co-Location":1,"E-mail":1,"Fortinet":5,"WiFi+":1},"Stephanie":{"Acesso Dedicado":1,"Fortinet":1,"SonicWall":1},"Supernova":{},"Thiago":{"Acesso Dedicado":521,"Acesso Link Comercio":10,"Antispam":30,"Antivirus":201,"Backup":334,"Cloud - Serv. Virtual":71,"E-mail":870,"Fortinet":790,"Hospedagem":370,"SMTP":42,"SonicWall":12,"Suporte a servidores":6,"Trust-Mail":122,"WiFi+":11,"ZABBIX":3},"Tiago":{"Acesso Dedicado":65,"Acesso Link Comercio":1,"Analise Vulnerabilidade":1,"Antispam":15,"Antivirus":78,"Backup":57,"Cloud - Serv. Virtual":53,"E-mail":421,"Fortinet":1383,"Hospedagem":122,"SMTP":17,"SonicWall":66,"Suporte a servidores":11,"Trust-Mail":53,"WiFi+":47},"Victor":{"Acesso Dedicado":138,"Acesso Link Comercio":10,"Fortinet":1},"Vinicius":{"Acesso Dedicado":31,"Acesso Link Comercio":2,"Antivirus":7,"Backup":1,"Cloud - Serv. Virtual":4,"Fortinet":140,"SonicWall":6,"WiFi+":4},"Vitor":{"Acesso Dedicado":302,"Acesso Link Comercio":12,"Analise Vulnerabilidade":1,"Antispam":6,"Antivirus":15,"Backup":50,"Cloud - Serv. Virtual":8,"E-mail":112,"Fortinet":1039,"Hospedagem":106,"SMTP":6,"SonicWall":45,"Suporte a servidores":2,"Trust-Mail":25,"WiFi+":18},"Wenderson Do Nascimento":{"Acesso Dedicado":10},"Wesley":{"Acesso Dedicado":24,"Acesso Link Comercio":1,"WiFi+":1},"Wilhard":{"Acesso Dedicado":933,"Acesso Link Comercio":21,"Antispam":1,"Backup":1,"Co-Location":2,"E-mail":3,"Fortinet":7,"SonicWall":1},"Yuri":{"Acesso Dedicado":218,"Acesso Link Comercio":1,"Analise Vulnerabilidade":1,"Antispam":4,"Antivirus":12,"Backup":86,"Cloud - Serv. Virtual":8,"E-mail":40,"Fortinet":497,"Hospedagem":45,"SonicWall":15,"Trust-Mail":1,"WiFi+":18,"ZABBIX":1},"imcnet":{"Acesso Dedicado":17,"Antivirus":1,"Backup":1,"Cloud - Serv. Virtual":2,"Fortinet":4,"Hospedagem":3,"SonicWall":1,"Trust-Mail":1}};
+const XP_THR=200, CP_MAX=5;
+let xpData={}, presentes=new Set(), escala={}, filterS=null, allSel=false, rstTarget=null, curUser=null;
+let USERS=[{name:'Reinaldo',email:'reinaldo@cti.com',pass:'Cti@2026',role:'admin',active:true}];
+// superlotação: técnicos que não couberam em nenhuma equipe
+let naoAlocados=[];
+// move modal state
+let moveTarget=null; // {nome, fromServico}
+
+// funil state
+let fq='', fStatus='all', fServ='';
+
+// ─── AUTH ─────────────────────────────────────────────────
+function doLogin(){
+  const e=document.getElementById('le').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const u=USERS.find(x=>x.email.toLowerCase()===e&&x.pass===p&&x.active);
+  const err=document.getElementById('lerr');
+  if(!u){err.classList.add('show');return;}
+  err.classList.remove('show');
+  curUser=u;
+  document.getElementById('ls').style.display='none';
+  const app=document.getElementById('app');
+  app.style.display='flex';
+  document.getElementById('nav-nm').textContent=u.name;
+  document.getElementById('nav-av').textContent=initials(u.name);
+  if(u.role==='admin'){document.getElementById('nt-us').style.display='';document.getElementById('th-act').textContent='Ação';document.getElementById('btn-add-colab').style.display='';}
+  else{document.getElementById('nt-us').style.display='none';document.getElementById('th-act').textContent='';document.getElementById('btn-add-colab').style.display='none';}
+  initXP(); renderTable(); updStats(); buildFunnel();
+}
+function doLogout(){
+  curUser=null; presentes.clear(); escala={}; naoAlocados=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('ls').style.display='flex';
+  document.getElementById('le').value=''; document.getElementById('lp').value='';
+}
+
+// ─── DRAWER ───────────────────────────────────────────────
+let drawerOpen=true;
+function toggleDrawer(){drawerOpen=!drawerOpen;document.getElementById('drawer').classList.toggle('closed',!drawerOpen);}
+
+// ─── TABS ─────────────────────────────────────────────────
+let curTab='op';
+function switchTab(t){
+  curTab=t;
+  document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nt').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('nt-'+t).classList.add('active');
+  const showSteps=t==='op';
+  document.getElementById('drawer-steps').style.display=showSteps?'':'none';
+  buildFunnel();
+}
+
+// ─── FUNIL ────────────────────────────────────────────────
+function buildFunnel(){
+  const fc=document.getElementById('funnel-content');
+  if(curTab==='op'){
+    const curScreen=document.querySelector('#tab-op .screen.active')?.id;
+    if(curScreen==='sc-0'){
+      fc.innerHTML=`
+        <div class="filt-group">
+          <span class="filt-label">Buscar técnico</span>
+          <input class="filt-input" id="fq-in" placeholder="Nome..." value="${fq}" oninput="fq=this.value;renderTable()">
+        </div>
+        <div class="filt-group">
+          <span class="filt-label">Status</span>
+          <div class="filt-chips">
+            <button class="chip chip-sm${fStatus==='all'?' on':''}" onclick="fStatus='all';renderTable();refreshChips()">Todos</button>
+            <button class="chip chip-sm${fStatus==='esp'?' on':''}" onclick="fStatus='esp';renderTable();refreshChips()">Especialista</button>
+            <button class="chip chip-sm${fStatus==='gen'?' on':''}" onclick="fStatus='gen';renderTable();refreshChips()">Geral</button>
+          </div>
+        </div>
+        <div class="filt-group">
+          <span class="filt-label">Serviço</span>
+          <select class="filt-input" id="fserv-sel" onchange="fServ=this.value;renderTable()">
+            <option value="">Todos os serviços</option>
+            ${SERVICOS.map(s=>`<option value="${s}"${fServ===s?' selected':''}>  ${s}</option>`).join('')}
+          </select>
+        </div>`;
+    } else if(curScreen==='sc-1'){
+      fc.innerHTML=`<div class="filt-group"><span class="filt-label">Buscar</span><input class="filt-input" placeholder="Nome..." oninput="document.getElementById('call-fq').value=this.value;renderChamada()"></div>`;
+    } else if(curScreen==='sc-2'){
+      const setoresAtivos=SERVICOS.filter(s=>escala[s]&&(escala[s].piloto||escala[s].copilotos.length));
+      fc.innerHTML=`
+        <div class="filt-group">
+          <span class="filt-label">Filtrar setor</span>
+          <div class="filt-chips" id="fc-chips">
+            <button class="chip chip-sm${!filterS?' on':''}" onclick="filterGrid(null)">Todos</button>
+            ${setoresAtivos.map(s=>`<button class="chip chip-sm${filterS===s?' on':''}" onclick="filterGrid('${s}')">${s}</button>`).join('')}
+          </div>
+        </div>
+        ${naoAlocados.length?`<div class="filt-group" style="margin-top:8px"><span class="filt-label" style="color:var(--rd)">⚠ Sem vaga (${naoAlocados.length})</span><div style="font-size:11px;color:var(--mu);line-height:1.5">${naoAlocados.join(', ')}</div></div>`:''}`;
+    } else {
+      fc.innerHTML='<div style="font-size:12px;color:var(--mu);padding:4px">Revise os créditos antes de confirmar.</div>';
+    }
+  } else if(curTab==='us'){
+    fc.innerHTML='<div style="font-size:12px;color:var(--mu);padding:4px">Gerencie quem tem acesso ao sistema.</div>';
+  } else {
+    fc.innerHTML='<div style="font-size:12px;color:var(--mu);padding:4px">Documentação do sistema.</div>';
+  }
+}
+function refreshChips(){buildFunnel();}
+
+// ─── XP ───────────────────────────────────────────────────
+function initXP(){COLABS.forEach(c=>{xpData[c]={};SERVICOS.forEach(s=>{xpData[c][s]=(XP_SEED[c]&&XP_SEED[c][s])||0;});});}
+function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
+function getEsp(c){return SERVICOS.filter(s=>xpData[c]&&xpData[c][s]>=XP_THR);}
+function totXP(c){return Object.values(xpData[c]||{}).reduce((a,b)=>a+b,0);}
+function updStats(){
+  const esp=COLABS.filter(c=>getEsp(c).length>0).length;
+  document.getElementById('st-tot').textContent=COLABS.length;
+  document.getElementById('st-esp').textContent=esp;
+}
+
+// ─── GESTÃO TABLE ─────────────────────────────────────────
+function renderTable(){
+  const list=COLABS.filter(c=>{
+    const matchQ=c.toLowerCase().includes(fq.toLowerCase());
+    const esps=getEsp(c);
+    const matchSt=fStatus==='all'||(fStatus==='esp'&&esps.length>0)||(fStatus==='gen'&&esps.length===0);
+    const matchSv=!fServ||(xpData[c]&&xpData[c][fServ]>0);
+    return matchQ&&matchSt&&matchSv;
+  });
+  const maxXP=Math.max(1,...COLABS.map(x=>totXP(x)));
+  const isAdmin=curUser&&curUser.role==='admin';
+  document.getElementById('tb').innerHTML=list.map(c=>{
+    const esps=getEsp(c); const txp=Math.round(totXP(c)); const pct=Math.min(100,Math.round(txp/maxXP*100));
+    const espH=esps.length?esps.slice(0,3).map(s=>`<span class="badge be">${s}</span>`).join('')+(esps.length>3?`<span class="badge bu">+${esps.length-3}</span>`:''):'<span style="color:var(--mu);font-size:11px">—</span>';
+    const act=isAdmin?`<button class="btn btn-sm bd" onclick="openReset('${c.replace(/'/g,"\'")}')">Reset XP</button>`:'';
+    return `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="cav" style="width:26px;height:26px;font-size:9px">${initials(c)}</div><span style="font-weight:500">${c}</span></div></td><td><div style="display:flex;gap:4px;flex-wrap:wrap">${espH}</div></td><td><div class="xbw"><div class="xb"><div class="xf${pct>=80?' mx':''}" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--mu);min-width:28px">${txp}</span></div></td><td><span class="badge ${esps.length?'be':'bg'}">${esps.length?'Especialista':'Geral'}</span></td><td>${act}</td></tr>`;
+  }).join('');
+  updStats();
+}
+
+// ─── CHAMADA ──────────────────────────────────────────────
+function renderChamada(){
+  const fqv=(document.getElementById('call-fq')||{value:''}).value||'';
+  document.getElementById('cg').innerHTML=COLABS.filter(c=>c.toLowerCase().includes(fqv.toLowerCase())).map(c=>{
+    const esps=getEsp(c); const sel=presentes.has(c);
+    return `<div class="cc${sel?' sel':''}" onclick="toggleP('${c.replace(/'/g,"\'")}')"><div class="cav">${initials(c)}</div><div><div style="font-size:12px;font-weight:500">${c}</div><div style="font-size:10px;color:var(--mu)">${esps.length?esps.slice(0,2).join(', ')+(esps.length>2?'…':''): 'Equipe geral'}</div></div><span class="cch">✓</span></div>`;
+  }).join('');
+  document.getElementById('pc').textContent=`${presentes.size} selecionados`;
+  document.getElementById('btn-gerar').disabled=presentes.size===0;
+}
+function toggleP(n){if(presentes.has(n))presentes.delete(n);else presentes.add(n);renderChamada();}
+function toggleAll(){if(allSel){presentes.clear();allSel=false;}else{COLABS.forEach(c=>presentes.add(c));allSel=true;}renderChamada();}
+
+// ─── ESCALA — LIMITE RÍGIDO DE 5 CO-PILOTOS ──────────────
+function gerarEscala(){
+  const lista=[...presentes];
+  const esp200=new Set(COLABS.filter(c=>getEsp(c).length>0));
+  escala={};
+  naoAlocados=[];
+  SERVICOS.forEach(s=>{escala[s]={piloto:null,copilotos:[]};});
+  const alocados=new Set();
+
+  // escassez: setores com menos especialistas presentes = prioridade
+  const esc={};
+  SERVICOS.forEach(s=>{esc[s]=lista.filter(c=>esp200.has(c)&&(xpData[c][s]||0)>=XP_THR).length||999;});
+  [...SERVICOS].sort((a,b)=>esc[a]-esc[b]).forEach(s=>{
+    const cands=lista.filter(c=>esp200.has(c)&&(xpData[c][s]||0)>=XP_THR&&!alocados.has(c))
+      .sort((a,b)=>(xpData[b][s]||0)-(xpData[a][s]||0));
+    if(cands.length){escala[s].piloto=cands[0];alocados.add(cands[0]);}
+  });
+
+  // co-pilotos — LIMITE RÍGIDO CP_MAX por setor
+  lista.filter(c=>!alocados.has(c)).forEach(c=>{
+    // setor com piloto + menos co-pilotos + abaixo do limite
+    const viavel=SERVICOS
+      .filter(s=>escala[s].piloto && escala[s].copilotos.length < CP_MAX)
+      .sort((a,b)=>escala[a].copilotos.length-escala[b].copilotos.length);
+    if(viavel.length){
+      escala[viavel[0]].copilotos.push(c);
+    } else {
+      // Todas as equipes com piloto estão cheias (5/5)
+      // Tenta setores sem piloto ainda
+      const semPiloto=SERVICOS.filter(s=>!escala[s].piloto&&escala[s].copilotos.length<CP_MAX)
+        .sort((a,b)=>escala[a].copilotos.length-escala[b].copilotos.length);
+      if(semPiloto.length){
+        escala[semPiloto[0]].copilotos.push(c);
+      } else {
+        // Superlotação real — não cabe em nenhum lugar
+        naoAlocados.push(c);
+      }
+    }
+  });
+
+  renderGrid(); goTo(2);
+
+  // Aviso de superlotação
+  if(naoAlocados.length){
+    setTimeout(()=>toast(`⚠ ${naoAlocados.length} técnico(s) sem vaga — realoque manualmente no grid.`,'r'),300);
+  }
+}
+
+// ─── RENDER GRID ──────────────────────────────────────────
+function renderGrid(){
+  // tags de filtro
+  const fc=document.getElementById('ftags');
+  const setoresAtivos=SERVICOS.filter(s=>escala[s]&&(escala[s].piloto||escala[s].copilotos.length));
+  fc.innerHTML=`<button class="tag${!filterS?' active':''}" onclick="filterGrid(null)">Todos</button>`+
+    setoresAtivos.map(s=>`<button class="tag${filterS===s?' active':''}" onclick="filterGrid('${s}')">${s}</button>`).join('');
+
+  // Overflow zone
+  const oz=document.getElementById('overflow-zone');
+  if(naoAlocados.length){
+    oz.innerHTML=`
+      <div class="overflow-alert">
+        <div class="oa-icon">⚠️</div>
+        <div class="oa-body">
+          <div class="oa-title">Superlotação — ${naoAlocados.length} técnico(s) sem vaga</div>
+          <div class="oa-desc">Todas as equipes atingiram o limite de ${CP_MAX} co-pilotos. Os técnicos abaixo precisam ser movidos manualmente para uma equipe com espaço disponível, ou uma equipe precisa liberar uma vaga.</div>
+          <div class="up-list" style="margin-top:8px">${naoAlocados.map(n=>`
+            <span class="unalloc-pill">
+              <div class="ra g" style="width:20px;height:20px;font-size:8px;flex-shrink:0">${initials(n)}</div>
+              ${n}
+              <button class="cp-move-btn" style="margin-left:4px" onclick="openMoveFromOverflow('${escapeQ(n)}')">↔ Alocar</button>
+            </span>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  } else {
+    oz.innerHTML='';
+  }
+
+  // Grid cards
+  const el=document.getElementById('eg');
+  el.innerHTML='';
+  (filterS?[filterS]:SERVICOS).forEach(s=>{
+    const{piloto,copilotos}=escala[s]||{piloto:null,copilotos:[]};
+    if(!piloto&&!copilotos.length) return;
+    const xpP=piloto?Math.round(xpData[piloto][s]||0):0;
+    const overLimit=copilotos.length>CP_MAX;
+    const cntBadge=copilotos.length?`<span style="font-size:9px;color:${overLimit?'var(--rd)':'var(--mu)'}">${copilotos.length}/${CP_MAX}</span>`:'';
+    const pH=piloto?`<div class="rp"><div class="ra">${initials(piloto)}</div><div><div class="rn">${piloto}</div><div class="rx">${xpP} XP</div></div></div>`:`<span class="np">Sessão coletiva</span>`;
+    const cpItems=copilotos.map((cp,idx)=>`
+      <div class="cp-item" draggable="true"
+        data-name="${escapeQ(cp)}" data-from="${escapeQ(s)}"
+        ondragstart="onDragStart(event)"
+        ondragend="onDragEnd(event)">
+        <span class="drag-handle" title="Arrastar">⠿</span>
+        <div class="ra g">${initials(cp)}</div>
+        <span class="rn" style="flex:1">${cp}</span>
+        <button class="cp-move-btn" onclick="openMove('${escapeQ(cp)}','${escapeQ(s)}')">↔</button>
+      </div>`).join('');
+    const cpH=copilotos.length?`<div class="cp-list">${cpItems}</div>`:`<span class="np">Sem co-piloto</span>`;
+    const card=document.createElement('div');
+    card.className='esc';
+    card.dataset.servico=s;
+    card.innerHTML=`
+      <div class="esc-name">${s}${cntBadge}</div>
+      <div class="rr"><span class="rl">Piloto</span>${pH}</div>
+      <div class="rr"><span class="rl">Co-pilotos</span>${cpH}</div>`;
+    // drag-over events for the card
+    card.addEventListener('dragover',onDragOver);
+    card.addEventListener('dragleave',onDragLeave);
+    card.addEventListener('drop',onDrop);
+    el.appendChild(card);
+  });
+
+  buildFunnel();
+}
+
+function filterGrid(s){filterS=s;renderGrid();}
+function escapeQ(s){return s.replace(/'/g,"\'");}
+
+// ─── DRAG & DROP ──────────────────────────────────────────
+let dragData=null;
+function onDragStart(e){
+  const el=e.currentTarget;
+  dragData={nome:el.dataset.name, from:el.dataset.from};
+  el.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function onDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  dragData=null;
+}
+function onDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drop-over');
+}
+function onDragLeave(e){e.currentTarget.classList.remove('drop-over');}
+function onDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-over');
+  if(!dragData) return;
+  const destServico=e.currentTarget.dataset.servico;
+  if(!destServico||destServico===dragData.from) return;
+  doMove(dragData.nome, dragData.from, destServico);
+}
+
+// ─── MOVE LOGIC ───────────────────────────────────────────
+function doMove(nome, fromServico, toServico){
+  // fromServico can be null if coming from overflow list
+  if(fromServico && fromServico!=='__overflow__'){
+    const idx=escala[fromServico]?.copilotos.indexOf(nome);
+    if(idx!==-1) escala[fromServico].copilotos.splice(idx,1);
+  } else {
+    // remove from naoAlocados
+    const idx=naoAlocados.indexOf(nome);
+    if(idx!==-1) naoAlocados.splice(idx,1);
+  }
+
+  if(toServico==='__overflow__'){
+    naoAlocados.push(nome);
+    toast(`${nome} movido para superlotação.`);
+  } else {
+    if(!escala[toServico]) escala[toServico]={piloto:null,copilotos:[]};
+    if(escala[toServico].copilotos.length>=CP_MAX){
+      toast(`⚠ ${toServico} já tem ${CP_MAX} co-pilotos. Escolha outro setor.`,'r');
+      // revert
+      if(fromServico && fromServico!=='__overflow__'){
+        escala[fromServico].copilotos.push(nome);
+      } else {
+        naoAlocados.push(nome);
+      }
+      return;
+    }
+    escala[toServico].copilotos.push(nome);
+    toast(`${nome} movido para ${toServico}.`,'g');
+  }
+  renderGrid();
+}
+
+// ─── MOVE MODAL (botão ↔) ────────────────────────────────
+function openMove(nome, fromServico){
+  moveTarget={nome, fromServico};
+  document.getElementById('move-title').textContent=`Mover: ${nome}`;
+  document.getElementById('move-sub').textContent=`Setor atual: ${fromServico}. Escolha o destino:`;
+  const sel=document.getElementById('move-dest');
+  const options=SERVICOS
+    .filter(s=>s!==fromServico && escala[s])
+    .map(s=>{
+      const avail=CP_MAX-((escala[s]&&escala[s].copilotos.length)||0);
+      const label=avail>0?`${s} (${avail} vaga${avail>1?'s':''})`:`${s} — CHEIO`;
+      return `<option value="${s}" ${avail<=0?'disabled':''} >${label}</option>`;
+    }).join('');
+  sel.innerHTML=options+`<option value="__overflow__">⚠ Mover para superlotação</option>`;
+  openMd('move');
+}
+
+function openMoveFromOverflow(nome){
+  moveTarget={nome, fromServico:'__overflow__'};
+  document.getElementById('move-title').textContent=`Alocar: ${nome}`;
+  document.getElementById('move-sub').textContent='Escolha o setor de destino:';
+  const sel=document.getElementById('move-dest');
+  const options=SERVICOS
+    .filter(s=>escala[s])
+    .map(s=>{
+      const avail=CP_MAX-((escala[s]&&escala[s].copilotos.length)||0);
+      const label=avail>0?`${s} (${avail} vaga${avail>1?'s':''})`:`${s} — CHEIO`;
+      return `<option value="${s}" ${avail<=0?'disabled':''} >${label}</option>`;
+    }).join('');
+  sel.innerHTML=options;
+  openMd('move');
+}
+
+function confirmMove(){
+  if(!moveTarget) return;
+  const dest=document.getElementById('move-dest').value;
+  closeMd('move');
+  doMove(moveTarget.nome, moveTarget.fromServico, dest);
+  moveTarget=null;
+}
+
+// ─── FECHAMENTO ───────────────────────────────────────────
+function renderLog(){
+  const log=[];
+  SERVICOS.forEach(s=>{const{piloto,copilotos}=escala[s]||{};if(piloto)log.push({nome:piloto,serv:s,papel:'Piloto',xp:10});copilotos.forEach(cp=>log.push({nome:cp,serv:s,papel:'Co-piloto',xp:3}));});
+  const el=document.getElementById('lp');
+  if(!log.length){el.innerHTML='<div style="text-align:center;padding:32px;color:var(--mu);font-size:12px">Gere a escala primeiro.</div>';return;}
+  if(naoAlocados.length){
+    el.innerHTML=`<div class="overflow-alert" style="margin-bottom:12px"><div class="oa-icon">⚠️</div><div class="oa-body"><div class="oa-title">${naoAlocados.length} técnico(s) não alocado(s)</div><div class="oa-desc">Os técnicos em superlotação não receberão XP pois não foram atribuídos a nenhum setor: <strong>${naoAlocados.join(', ')}</strong></div></div></div>`;
+  } else {
+    el.innerHTML='';
+  }
+  el.innerHTML+=log.map(l=>{const cur=xpData[l.nome]?.[l.serv]||0;const nov=cur+l.xp;const ev=cur<XP_THR&&nov>=XP_THR;return `<div class="li${ev?' ev':''}" ><div class="ld${ev?' ev':''}" ></div><div class="lt"><strong>${l.nome}</strong> · ${l.papel} em <em>${l.serv}</em>${ev?' — 🎉 novo especialista!':''}</div><div class="lx${ev?' ev':''}"> ${cur}→${nov}</div></div>`;}).join('');
+}
+function fechar(){
+  let ev=0;
+  SERVICOS.forEach(s=>{const{piloto,copilotos}=escala[s]||{};if(piloto){const c=xpData[piloto][s]||0;if(c<XP_THR&&c+10>=XP_THR)ev++;xpData[piloto][s]=c+10;}copilotos.forEach(cp=>{const c=xpData[cp][s]||0;if(c<XP_THR&&c+3>=XP_THR)ev++;xpData[cp][s]=c+3;});});
+  toast(ev>0?`XP creditado! ${ev} novo(s) especialista(s)!`:'XP creditado com sucesso.',ev>0?'g':'');
+  escala={};presentes.clear();allSel=false;naoAlocados=[];renderTable();updStats();setTimeout(()=>goTo(0),1200);
+}
+
+// ─── STEPS NAV ────────────────────────────────────────────
+let curStep=0;
+function goTo(n){
+  document.querySelectorAll('#tab-op .screen').forEach((s,i)=>s.classList.toggle('active',i===n));
+  [0,1,2,3].forEach(i=>{
+    const si=document.getElementById('si-'+i);
+    const sn=document.getElementById('sn-'+i);
+    si.classList.remove('active','done','disabled');
+    sn.style.background=''; sn.style.color='';
+    if(i<n){si.classList.add('done');}
+    else if(i===n){si.classList.add('active');}
+    else{si.classList.add('disabled');}
+  });
+  curStep=n;
+  if(n===1)renderChamada();
+  if(n===3)renderLog();
+  buildFunnel();
+}
+
+// ─── USERS ────────────────────────────────────────────────
+function renderUsers(){
+  document.getElementById('utb').innerHTML=USERS.map((u,i)=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="nav-av" style="width:26px;height:26px;font-size:9px">${initials(u.name)}</div><span style="font-weight:500">${u.name}</span>${u.email===curUser.email?'<span class="badge bg" style="font-size:9px">você</span>':''}</div></td>
+    <td style="color:var(--mu)">${u.email}</td>
+    <td><span class="badge ${u.role==='admin'?'bad':'bu'}">${u.role==='admin'?'Admin':'Operador'}</span></td>
+    <td><span class="badge" style="${u.active?'background:var(--gr-l);color:var(--gr)':'background:var(--rd-l);color:var(--rd)'}">${u.active?'Ativo':'Inativo'}</span></td>
+    <td>${u.email!==curUser.email?`<button class="btn btn-sm ${u.active?'bd':''}" onclick="toggleUA(${i})">${u.active?'Desativar':'Reativar'}</button>`:''}</td>
+  </tr>`).join('');
+}
+function toggleUA(i){if(USERS[i].email===curUser.email){toast('Não pode desativar seu próprio acesso.','r');return;}USERS[i].active=!USERS[i].active;renderUsers();toast(USERS[i].active?`${USERS[i].name} reativado.`:`${USERS[i].name} desativado.`,USERS[i].active?'g':'');}
+function addUser(){
+  const n=document.getElementById('un').value.trim(),e=document.getElementById('ue').value.trim().toLowerCase(),p=document.getElementById('up').value,r=document.getElementById('ur').value;
+  if(!n||!e||!p){toast('Preencha todos os campos.');return;}
+  if(USERS.find(u=>u.email.toLowerCase()===e)){toast('E-mail já cadastrado.');return;}
+  USERS.push({name:n,email:e,pass:p,role:r,active:true});
+  closeMd('user');['un','ue','up'].forEach(id=>document.getElementById(id).value='');
+  renderUsers();toast(`Acesso criado para ${n}!`,'g');
+}
+
+// ─── MODALS ───────────────────────────────────────────────
+function openMd(t){document.getElementById('md-'+t).classList.add('open');if(t==='user')setTimeout(()=>renderUsers(),50);}
+function closeMd(t){document.getElementById('md-'+t).classList.remove('open');}
+function addColab(){
+  const n=document.getElementById('mn').value.trim();
+  if(!n){toast('Nome inválido.');return;}
+  if(COLABS.includes(n)){toast('Já cadastrado.');return;}
+  COLABS.push(n);xpData[n]={};SERVICOS.forEach(s=>xpData[n][s]=0);
+  closeMd('add');document.getElementById('mn').value='';renderTable();toast(`${n} cadastrado!`,'g');
+}
+function openReset(name){
+  if(!curUser||curUser.role!=='admin'){toast('Sem permissão.','r');return;}
+  rstTarget=name;
+  document.getElementById('rs-sub').textContent=`Zerar XP de ${name} em qual serviço?`;
+  document.getElementById('rs-serv').innerHTML=SERVICOS.map(s=>`<option value="${s}">${s} (${Math.round(xpData[name]?.[s]||0)} XP)</option>`).join('');
+  openMd('reset');
+}
+function confirmReset(){if(rstTarget&&xpData[rstTarget])xpData[rstTarget][document.getElementById('rs-serv').value]=0;closeMd('reset');renderTable();toast('XP resetado.');}
+
+// ─── TOAST ────────────────────────────────────────────────
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type==='g'?' tg':type==='r'?' tr':'');setTimeout(()=>t.className='toast',2800);}
+
+// click fora fecha modal
+document.querySelectorAll('.mbg').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open');}));
+document.addEventListener('DOMContentLoaded',()=>{const i=document.createElement('input');i.id='call-fq';i.style.display='none';document.body.appendChild(i);});
+</script>
+</body>
+</html>
